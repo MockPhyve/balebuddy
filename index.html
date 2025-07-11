@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hay Production Advisor</title>
+    <title>The Haymaker</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React Libraries -->
@@ -43,6 +43,10 @@
             width: 90%;
             max-width: 500px;
         }
+        /* Ensure date picker text color is consistent in dark mode */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.8);
+        }
     </style>
      <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -56,82 +60,25 @@
         const e = React.createElement;
 
         // --- Helper Functions & Data Fetching ---
-        const formatDate = (dateStr) => { /* Unchanged */ const date = new Date(dateStr + 'T12:00:00Z'); return new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).format(date); };
-        const parseNWSForecast = (periods) => { /* Unchanged */ const dailyData = {}; if (!periods) return []; periods.forEach(period => { const date = period.startTime.split('T')[0]; if (!dailyData[date]) { dailyData[date] = { date: date, temps: [], humidities: [], precipitations: [], windSpeeds: [], conditions: [] }; } dailyData[date].temps.push(period.temperature); if (period.relativeHumidity && period.relativeHumidity.value !== null) dailyData[date].humidities.push(period.relativeHumidity.value); if (period.probabilityOfPrecipitation && period.probabilityOfPrecipitation.value !== null) dailyData[date].precipitations.push(period.probabilityOfPrecipitation.value); const windSpeedMatch = period.windSpeed.match(/\d+/g); if (windSpeedMatch) dailyData[date].windSpeeds.push(Math.max(...windSpeedMatch.map(Number))); dailyData[date].conditions.push(period.shortForecast); }); return Object.values(dailyData).map(day => { const getCondition = (conditions) => { const lowerCaseConditions = conditions.join(' ').toLowerCase(); if (lowerCaseConditions.includes('rain') || lowerCaseConditions.includes('showers') || lowerCaseConditions.includes('thunderstorms')) return 'Rain'; if (lowerCaseConditions.includes('cloudy')) return 'Cloudy'; return 'Sunny'; }; return { date: day.date, temp: Math.max(...day.temps), humidity: day.humidities.length > 0 ? Math.round(day.humidities.reduce((a, b) => a + b, 0) / day.humidities.length) : 60, precipitationChance: day.precipitations.length > 0 ? Math.max(...day.precipitations) : 0, windSpeed: day.windSpeeds.length > 0 ? Math.max(...day.windSpeeds) : 5, condition: getCondition(day.conditions) }; }).sort((a,b) => new Date(a.date) - new Date(b.date)); };
+        const formatDate = (dateStr) => { const date = new Date(dateStr + 'T12:00:00Z'); return new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).format(date); };
+        const parseNWSForecast = (periods) => { const dailyData = {}; if (!periods) return []; periods.forEach(period => { const date = period.startTime.split('T')[0]; if (!dailyData[date]) { dailyData[date] = { date: date, temps: [], humidities: [], precipitations: [], windSpeeds: [], conditions: [] }; } dailyData[date].temps.push(period.temperature); if (period.relativeHumidity && period.relativeHumidity.value !== null) dailyData[date].humidities.push(period.relativeHumidity.value); if (period.probabilityOfPrecipitation && period.probabilityOfPrecipitation.value !== null) dailyData[date].precipitations.push(period.probabilityOfPrecipitation.value); const windSpeedMatch = period.windSpeed.match(/\d+/g); if (windSpeedMatch) dailyData[date].windSpeeds.push(Math.max(...windSpeedMatch.map(Number))); dailyData[date].conditions.push(period.shortForecast); }); return Object.values(dailyData).map(day => { const getCondition = (conditions) => { const lowerCaseConditions = conditions.join(' ').toLowerCase(); if (lowerCaseConditions.includes('rain') || lowerCaseConditions.includes('showers') || lowerCaseConditions.includes('thunderstorms')) return 'Rain'; if (lowerCaseConditions.includes('cloudy')) return 'Cloudy'; return 'Sunny'; }; return { date: day.date, temp: Math.max(...day.temps), humidity: day.humidities.length > 0 ? Math.round(day.humidities.reduce((a, b) => a + b, 0) / day.humidities.length) : 60, precipitationChance: day.precipitations.length > 0 ? Math.max(...day.precipitations) : 0, windSpeed: day.windSpeeds.length > 0 ? Math.max(...day.windSpeeds) : 5, condition: getCondition(day.conditions) }; }).sort((a,b) => new Date(a.date) - new Date(b.date)); };
 
         // --- UI Components ---
         const Icon = ({ name, className }) => { const icons = { sun: e('path', { d: "M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M12 6a6 6 0 100 12 6 6 0 000-12z" }), cloudy: e('path', { d: "M18 10h-1.26A8 8 0 104 16h14a4 4 0 000-8z" }), rain: e('path', { d: "M18 10h-1.26A8 8 0 104 16h14a4 4 0 000-8zM12 16v4m-4-2v4m8-4v4" }), wind: e('path', { d: "M9.59 4.59A2 2 0 1111 8H2m10.59 11.41A2 2 0 1014 16H2m15.73-8.27A2.5 2.5 0 1119.5 12H2" }), humidity: e('path', { d: "M12 2.69l5.66 5.66a8 8 0 11-11.31 0L12 2.69zM12 17V8" }), temp: e('path', { d: "M14 4h-0.5a2.5 2.5 0 00-5 0H8a1 1 0 00-1 1v12a1 1 0 001 1h6a1 1 0 001-1V5a1 1 0 00-1-1zM12 15a2 2 0 110-4 2 2 0 010 4z" }), location: e('g', null, e('path', { d: "M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" }), e('circle', { cx: "12", cy: "10", r: "3" })), edit: e('g', null, e('path', { d: "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" }), e('path', { d: "M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" })) }; return e('svg', { xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", className }, icons[name]); };
         const StatusDisplay = ({ message }) => e('div', { className: "flex flex-col items-center justify-center h-56 space-y-3" }, e('div', { className: "loader" }), e('p', { className: "text-gray-500 dark:text-gray-400 text-center" }, message));
         const ErrorDisplay = ({ message }) => e('div', { className: "flex flex-col items-center justify-center h-56 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg" }, e('p', { className: "text-red-600 dark:text-red-400 text-center font-semibold" }, "An Error Occurred"), e('p', { className: "text-red-500 dark:text-red-300 text-center mt-1 text-sm"}, message));
-        const SuccessGauge = ({ score }) => {
-            const getScoreColor = (s) => (s > 80 ? 'text-green-500' : s > 50 ? 'text-yellow-500' : 'text-red-500');
-            const circumference = 2 * Math.PI * 45;
-            const offset = circumference - (score / 100) * circumference;
-            return e('div', { className: "relative flex items-center justify-center w-48 h-48 sm:w-56 sm:h-56" },
-                e('svg', { className: "w-full h-full", viewBox: "0 0 100 100" },
-                    e('circle', { className: "text-gray-200 dark:text-gray-700", strokeWidth: "10", stroke: "currentColor", fill: "transparent", r: "45", cx: "50", cy: "50" }),
-                    e('circle', { className: `transform -rotate-90 origin-center transition-all duration-1000 ease-out ${getScoreColor(score)}`, strokeWidth: "10", strokeDasharray: circumference, strokeDashoffset: offset, stroke: "currentColor", fill: "transparent", r: "45", cx: "50", cy: "50", strokeLinecap: "round" })
-                ),
-                e('div', { className: "absolute flex flex-col items-center" },
-                    e('span', { className: `text-5xl sm:text-6xl font-bold ${getScoreColor(score)}` }, `${Math.round(score)}%`),
-                    e('span', { className: "text-sm font-medium text-gray-500 dark:text-gray-400" }, "Success Chance")
-                )
-            );
-        };
-        const WeatherCard = ({ day }) => {
-            const conditionIcons = { 'Sunny': 'sun', 'Cloudy': 'cloudy', 'Rain': 'rain' };
-            const conditionColors = { 'Sunny': 'text-yellow-500', 'Cloudy': 'text-gray-500', 'Rain': 'text-blue-500' };
-            return e('div', { className: "flex-shrink-0 w-32 p-4 space-y-3 bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700" },
-                e('div', { className: "flex flex-col items-center space-y-1" },
-                    e('p', { className: "font-bold text-gray-800 dark:text-gray-200" }, formatDate(day.date)),
-                    e(Icon, { name: conditionIcons[day.condition] || 'cloudy', className: `w-10 h-10 ${conditionColors[day.condition] || 'text-gray-500'}` }),
-                    e('p', { className: "text-sm text-gray-500 dark:text-gray-400" }, day.condition)
-                ),
-                e('div', { className: "space-y-2 text-xs text-gray-700 dark:text-gray-300" },
-                    e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "temp", className: "w-4 h-4 text-red-400" }), e('span', null, "Temp")), e('span', { className: "font-semibold" }, `${day.temp}°F`)),
-                    e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "rain", className: "w-4 h-4 text-blue-400" }), e('span', null, "Rain")), e('span', { className: "font-semibold" }, `${day.precipitationChance}%`)),
-                    e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "humidity", className: "w-4 h-4 text-cyan-400" }), e('span', null, "Humid")), e('span', { className: "font-semibold" }, `${day.humidity}%`)),
-                    e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "wind", className: "w-4 h-4 text-gray-400" }), e('span', null, "Wind")), e('span', { className: "font-semibold" }, `${day.windSpeed} mph`))
-                )
-            );
-        };
+        const SuccessGauge = ({ score }) => { const getScoreColor = (s) => (s > 80 ? 'text-green-500' : s > 50 ? 'text-yellow-500' : 'text-red-500'); const circumference = 2 * Math.PI * 45; const offset = circumference - (score / 100) * circumference; return e('div', { className: "relative flex items-center justify-center w-48 h-48 sm:w-56 sm:h-56" }, e('svg', { className: "w-full h-full", viewBox: "0 0 100 100" }, e('circle', { className: "text-gray-200 dark:text-gray-700", strokeWidth: "10", stroke: "currentColor", fill: "transparent", r: "45", cx: "50", cy: "50" }), e('circle', { className: `transform -rotate-90 origin-center transition-all duration-1000 ease-out ${getScoreColor(score)}`, strokeWidth: "10", strokeDasharray: circumference, strokeDashoffset: offset, stroke: "currentColor", fill: "transparent", r: "45", cx: "50", cy: "50", strokeLinecap: "round" })), e('div', { className: "absolute flex flex-col items-center" }, e('span', { className: `text-5xl sm:text-6xl font-bold ${getScoreColor(score)}` }, `${Math.round(score)}%`), e('span', { className: "text-sm font-medium text-gray-500 dark:text-gray-400" }, "Success Chance"))); };
+        const WeatherCard = ({ day }) => { const conditionIcons = { 'Sunny': 'sun', 'Cloudy': 'cloudy', 'Rain': 'rain' }; const conditionColors = { 'Sunny': 'text-yellow-500', 'Cloudy': 'text-gray-500', 'Rain': 'text-blue-500' }; return e('div', { className: "flex-shrink-0 w-32 p-4 space-y-3 bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700" }, e('div', { className: "flex flex-col items-center space-y-1" }, e('p', { className: "font-bold text-gray-800 dark:text-gray-200" }, formatDate(day.date)), e(Icon, { name: conditionIcons[day.condition] || 'cloudy', className: `w-10 h-10 ${conditionColors[day.condition] || 'text-gray-500'}` }), e('p', { className: "text-sm text-gray-500 dark:text-gray-400" }, day.condition)), e('div', { className: "space-y-2 text-xs text-gray-700 dark:text-gray-300" }, e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "temp", className: "w-4 h-4 text-red-400" }), e('span', null, "Temp")), e('span', { className: "font-semibold" }, `${day.temp}°F`)), e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "rain", className: "w-4 h-4 text-blue-400" }), e('span', null, "Rain")), e('span', { className: "font-semibold" }, `${day.precipitationChance}%`)), e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "humidity", className: "w-4 h-4 text-cyan-400" }), e('span', null, "Humid")), e('span', { className: "font-semibold" }, `${day.humidity}%`)), e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "wind", className: "w-4 h-4 text-gray-400" }), e('span', null, "Wind")), e('span', { className: "font-semibold" }, `${day.windSpeed} mph`))));};
         const AdviceDisplay = ({ advice, color }) => advice ? e('div', { className: `p-4 mt-4 text-center rounded-lg border-l-4 ${color.border} ${color.bg} ${color.text}`}, e('p', { className: "font-semibold" }, advice)) : null;
-        
-        const LocationModal = ({ onSearch, onClose }) => {
-            const [query, setQuery] = useState('');
-            return e('div', { className: 'modal-overlay' },
-                e('div', { className: 'modal-content dark:bg-gray-800' },
-                    e('h3', { className: 'text-xl font-semibold text-gray-800 dark:text-white mb-4' }, 'Change Location'),
-                    e('p', { className: 'text-sm text-gray-500 dark:text-gray-400 mb-4' }, 'Enter a city and state (e.g., "Omaha, NE").'),
-                    e('input', {
-                        type: 'text',
-                        value: query,
-                        onChange: (ev) => setQuery(ev.target.value),
-                        className: 'w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600',
-                        placeholder: 'Enter new location...'
-                    }),
-                    e('div', { className: 'mt-6 flex justify-end space-x-3' },
-                        e('button', { onClick: onClose, className: 'px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500' }, 'Cancel'),
-                        e('button', { onClick: () => onSearch(query), className: 'px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700' }, 'Search')
-                    )
-                )
-            );
-        };
-        
-        const RadarView = ({ location }) => {
-            if (!location) return null;
-            const { lat, lon } = location;
-            const radarSrc = `https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&zoom=7&type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&overlay=radar&product=ecmwf&menu=&message=true&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&detailLat=${lat}&detailLon=${lon}&metricWind=mph&metricTemp=%C2%B0F&metricRain=in`;
-            return e('div', { className: "w-full h-[60vh] rounded-lg overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700 bg-gray-200" },
-                e('iframe', { className: "w-full h-full", src: radarSrc, frameBorder: "0" })
-            );
-        };
+        const LocationModal = ({ onSearch, onClose }) => { const [query, setQuery] = useState(''); return e('div', { className: 'modal-overlay' }, e('div', { className: 'modal-content dark:bg-gray-800' }, e('h3', { className: 'text-xl font-semibold text-gray-800 dark:text-white mb-4' }, 'Change Location'), e('p', { className: 'text-sm text-gray-500 dark:text-gray-400 mb-4' }, 'Enter a city and state (e.g., "Omaha, NE").'), e('input', { type: 'text', value: query, onChange: (ev) => setQuery(ev.target.value), className: 'w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white', placeholder: 'Enter new location...' }), e('div', { className: 'mt-6 flex justify-end space-x-3' }, e('button', { onClick: onClose, className: 'px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500' }, 'Cancel'), e('button', { onClick: () => onSearch(query), className: 'px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700' }, 'Search')))); };
+        const RadarView = ({ location }) => { if (!location) return null; const { lat, lon } = location; const radarSrc = `https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&zoom=7&type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&overlay=radar&product=ecmwf&menu=&message=true&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&detailLat=${lat}&detailLon=${lon}&metricWind=mph&metricTemp=%C2%B0F&metricRain=in`; return e('div', { className: "w-full h-[60vh] rounded-lg overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700 bg-gray-200" }, e('iframe', { className: "w-full h-full", src: radarSrc, frameBorder: "0" })); };
 
         // --- Main App Component ---
         function App() {
           const today = new Date().toISOString().split('T')[0];
           
           const [cutDate, setCutDate] = useState(today);
+          const [dryingPeriod, setDryingPeriod] = useState(3); // New state for drying period
           const [fullForecast, setFullForecast] = useState([]);
           const [status, setStatus] = useState({ stage: 'idle', message: 'Click the button to get your local forecast.' });
           const [location, setLocation] = useState(null);
@@ -139,78 +86,16 @@
           const [activeTab, setActiveTab] = useState('forecast');
           const [isModalOpen, setIsModalOpen] = useState(false);
           
-          const fetchWeatherForLocation = async (loc, name) => {
-              setLocation(loc);
-              setLocationName(name);
-              setStatus({ stage: 'fetching', message: 'Fetching weather station data...' });
-              try {
-                  const pointsResponse = await fetch(`https://api.weather.gov/points/${loc.lat.toFixed(4)},${loc.lon.toFixed(4)}`);
-                  if (!pointsResponse.ok) throw new Error(`Could not find a nearby weather station (${pointsResponse.status}).`);
-                  
-                  const pointsData = await pointsResponse.json();
-                  const props = pointsData.properties;
-                  if (name === 'your location') { setLocationName(`${props.relativeLocation.properties.city}, ${props.relativeLocation.properties.state}`); }
-                  
-                  const forecastUrl = props.forecast;
-                  if (!forecastUrl) throw new Error("Weather station data is incomplete.");
+          const fetchWeatherForLocation = async (loc, name) => { setLocation(loc); setLocationName(name); setStatus({ stage: 'fetching', message: 'Fetching weather station data...' }); try { const pointsResponse = await fetch(`https://api.weather.gov/points/${loc.lat.toFixed(4)},${loc.lon.toFixed(4)}`); if (!pointsResponse.ok) throw new Error(`Could not find a nearby weather station (${pointsResponse.status}).`); const pointsData = await pointsResponse.json(); const props = pointsData.properties; if (name === 'your location') { setLocationName(`${props.relativeLocation.properties.city}, ${props.relativeLocation.properties.state}`); } const forecastUrl = props.forecast; if (!forecastUrl) throw new Error("Weather station data is incomplete."); setStatus({ stage: 'fetching', message: 'Fetching forecast...' }); const forecastResponse = await fetch(forecastUrl); if (!forecastResponse.ok) throw new Error(`Could not fetch forecast data (${forecastResponse.status}).`); const forecastData = await forecastResponse.json(); const parsedData = parseNWSForecast(forecastData.properties.periods); setFullForecast(parsedData); setStatus({ stage: 'success', message: '' }); } catch (err) { console.error("Weather fetch error:", err); setStatus({ stage: 'error', message: err.message }); } };
+          const handleInitialFetch = async () => { setStatus({ stage: 'locating', message: 'Requesting your location... Please approve the request in your browser.' }); try { const position = await new Promise((resolve, reject) => { navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 }); }); await fetchWeatherForLocation({ lat: position.coords.latitude, lon: position.coords.longitude }, 'your location'); } catch (err) { const defaultLocation = { lat: 36.15, lon: -83.55, name: "Wildwood Lake, TN" }; setStatus({ stage: 'error', message: `Location access failed. Using default: ${defaultLocation.name}.` }); await fetchWeatherForLocation(defaultLocation, defaultLocation.name); } };
+          const handleLocationSearch = async (query) => { setIsModalOpen(false); if (!query) return; setStatus({ stage: 'fetching', message: `Geocoding "${query}"...` }); try { const geocodeResponse = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`); if (!geocodeResponse.ok) throw new Error('Geocoding service failed.'); const geocodeData = await geocodeResponse.json(); if (geocodeData.length === 0) throw new Error(`Could not find location: "${query}"`); const { lat, lon, display_name } = geocodeData[0]; await fetchWeatherForLocation({ lat: parseFloat(lat), lon: parseFloat(lon) }, display_name.split(',')[0]); } catch (err) { setStatus({ stage: 'error', message: err.message }); } };
 
-                  setStatus({ stage: 'fetching', message: 'Fetching forecast...' });
-                  const forecastResponse = await fetch(forecastUrl);
-                  if (!forecastResponse.ok) throw new Error(`Could not fetch forecast data (${forecastResponse.status}).`);
-                  
-                  const forecastData = await forecastResponse.json();
-                  const parsedData = parseNWSForecast(forecastData.properties.periods);
-                  setFullForecast(parsedData);
-                  setStatus({ stage: 'success', message: '' });
-
-              } catch (err) {
-                  console.error("Weather fetch error:", err);
-                  setStatus({ stage: 'error', message: err.message });
-              }
-          };
-
-          const handleInitialFetch = async () => {
-              setStatus({ stage: 'locating', message: 'Requesting your location... Please approve the request in your browser.' });
-              try {
-                  const position = await new Promise((resolve, reject) => {
-                      navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
-                  });
-                  await fetchWeatherForLocation({ lat: position.coords.latitude, lon: position.coords.longitude }, 'your location');
-              } catch (err) {
-                  const defaultLocation = { lat: 36.15, lon: -83.55, name: "Wildwood Lake, TN" };
-                  setStatus({ stage: 'error', message: `Location access failed. Using default: ${defaultLocation.name}.` });
-                  await fetchWeatherForLocation(defaultLocation, defaultLocation.name);
-              }
-          };
+          const weatherDataForAnalysis = useMemo(() => { if (fullForecast.length === 0) return []; const startIndex = fullForecast.findIndex(day => day.date >= cutDate); return startIndex === -1 ? [] : fullForecast.slice(startIndex, startIndex + 5); }, [cutDate, fullForecast]);
           
-          const handleLocationSearch = async (query) => {
-              setIsModalOpen(false);
-              if (!query) return;
-              setStatus({ stage: 'fetching', message: `Geocoding "${query}"...` });
-              try {
-                  // Using a free, public geocoding API. A real app would use a service with an API key.
-                  const geocodeResponse = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`);
-                  if (!geocodeResponse.ok) throw new Error('Geocoding service failed.');
-                  const geocodeData = await geocodeResponse.json();
-                  if (geocodeData.length === 0) throw new Error(`Could not find location: "${query}"`);
-                  
-                  const { lat, lon, display_name } = geocodeData[0];
-                  await fetchWeatherForLocation({ lat: parseFloat(lat), lon: parseFloat(lon) }, display_name.split(',')[0]);
-
-              } catch (err) {
-                  setStatus({ stage: 'error', message: err.message });
-              }
-          };
-
-          const weatherDataForAnalysis = useMemo(() => {
-            if (fullForecast.length === 0) return [];
-            const startIndex = fullForecast.findIndex(day => day.date >= cutDate);
-            return startIndex === -1 ? [] : fullForecast.slice(startIndex, startIndex + 5);
-          }, [cutDate, fullForecast]);
-
+          // Updated analysis logic to use dryingPeriod state
           const analysis = useMemo(() => {
-            const dryingDays = weatherDataForAnalysis.slice(0, 3);
-            if (dryingDays.length < 3) return { score: 0, advice: "Not enough forecast data for a reliable prediction.", color: { text: 'text-gray-800', bg: 'bg-gray-100', border: 'border-gray-400' } };
+            const dryingDays = weatherDataForAnalysis.slice(0, dryingPeriod);
+            if (dryingDays.length < dryingPeriod) return { score: 0, advice: "Not enough forecast data for a reliable prediction.", color: { text: 'text-gray-800', bg: 'bg-gray-100', border: 'border-gray-400' } };
             let score = 100;
             dryingDays.forEach((day, index) => {
                 score -= (day.precipitationChance || 0) * (1.8 - index * 0.3);
@@ -226,7 +111,7 @@
             else if (score > 40) { advice = "Risky conditions. Rain or high humidity may impact drying."; color = { text: 'text-orange-800', bg: 'bg-orange-100', border: 'border-orange-500' }; }
             else { advice = "Poor conditions. It's not recommended to cut hay now."; color = { text: 'text-red-800', bg: 'bg-red-100', border: 'border-red-500' }; }
             return { score, advice, color };
-          }, [weatherDataForAnalysis]);
+          }, [weatherDataForAnalysis, dryingPeriod]);
 
           const renderContent = () => {
               switch (status.stage) {
@@ -242,6 +127,8 @@
                       return e(ErrorDisplay, { message: status.message });
                   case 'success':
                       const tabClass = (tabName) => `px-4 py-2 text-sm font-medium rounded-md ${activeTab === tabName ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700'}`;
+                      const periodButtonClass = (period) => `px-4 py-1.5 rounded-md text-sm font-medium ${dryingPeriod === period ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'}`;
+                      
                       return e('div', { className: "w-full" },
                           e('div', { className: 'mb-4 border-b border-gray-200 dark:border-gray-700' }, 
                             e('nav', { className: 'flex space-x-2' }, 
@@ -251,11 +138,24 @@
                           ),
                           activeTab === 'forecast' && e('div', { className: 'grid grid-cols-1 md:grid-cols-2 gap-8 items-center' },
                               e('div', { className: "flex flex-col items-center space-y-6" },
-                                  e('div', { className: "w-full max-w-xs" }, e('label', { htmlFor: "cut-date", className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center" }, "Select Planned Cut Date:"), e('input', { type: "date", id: "cut-date", value: cutDate, min: today, onChange: (ev) => setCutDate(ev.target.value), className: "w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600" })),
+                                  e('div', { className: "w-full max-w-xs space-y-4" },
+                                    e('div', null,
+                                      e('label', { htmlFor: "cut-date", className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center" }, "Select Planned Cut Date:"),
+                                      e('input', { type: "date", id: "cut-date", value: cutDate, min: today, onChange: (ev) => setCutDate(ev.target.value), className: "w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" })
+                                    ),
+                                    e('div', null,
+                                      e('label', { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center" }, "Select Drying Period:"),
+                                      e('div', { className: 'flex justify-center space-x-2' },
+                                        e('button', { onClick: () => setDryingPeriod(3), className: periodButtonClass(3) }, '3 Days'),
+                                        e('button', { onClick: () => setDryingPeriod(4), className: periodButtonClass(4) }, '4 Days'),
+                                        e('button', { onClick: () => setDryingPeriod(5), className: periodButtonClass(5) }, '5 Days')
+                                      )
+                                    )
+                                  ),
                                   e(SuccessGauge, { score: analysis.score })
                               ),
                               e('div', { className: "flex flex-col" },
-                                  e('h2', { className: "text-xl font-semibold text-center md:text-left mb-2 text-gray-800 dark:text-white" }, "Analysis & 5-Day Drying Forecast"),
+                                  e('h2', { className: "text-xl font-semibold text-center md:text-left mb-2 text-gray-800 dark:text-white" }, `Analysis for ${dryingPeriod}-Day Window`),
                                   e(AdviceDisplay, { advice: analysis.advice, color: analysis.color }),
                                   e('div', { className: "mt-4" }, e('div', { className: "flex gap-4 overflow-x-auto pb-4 -mx-2 px-2" }, weatherDataForAnalysis.length > 0 ? weatherDataForAnalysis.map(day => e(WeatherCard, { key: day.date, day })) : e('p', { className: "text-center w-full text-gray-500" }, "No forecast available for the selected date.")))
                               )
