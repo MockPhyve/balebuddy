@@ -68,17 +68,18 @@
         const StatusDisplay = ({ message }) => e('div', { className: "flex flex-col items-center justify-center h-56 space-y-3" }, e('div', { className: "loader" }), e('p', { className: "text-gray-500 dark:text-gray-400 text-center" }, message));
         const ErrorDisplay = ({ message }) => e('div', { className: "flex flex-col items-center justify-center h-56 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg" }, e('p', { className: "text-red-600 dark:text-red-400 text-center font-semibold" }, "An Error Occurred"), e('p', { className: "text-red-500 dark:text-red-300 text-center mt-1 text-sm"}, message));
         const SuccessGauge = ({ score }) => { const getScoreColor = (s) => (s > 80 ? 'text-green-500' : s > 50 ? 'text-yellow-500' : 'text-red-500'); const circumference = 2 * Math.PI * 45; const offset = circumference - (score / 100) * circumference; return e('div', { className: "relative flex items-center justify-center w-48 h-48 sm:w-56 sm:h-56" }, e('svg', { className: "w-full h-full", viewBox: "0 0 100 100" }, e('circle', { className: "text-gray-200 dark:text-gray-700", strokeWidth: "10", stroke: "currentColor", fill: "transparent", r: "45", cx: "50", cy: "50" }), e('circle', { className: `transform -rotate-90 origin-center transition-all duration-1000 ease-out ${getScoreColor(score)}`, strokeWidth: "10", strokeDasharray: circumference, strokeDashoffset: offset, stroke: "currentColor", fill: "transparent", r: "45", cx: "50", cy: "50", strokeLinecap: "round" })), e('div', { className: "absolute flex flex-col items-center" }, e('span', { className: `text-5xl sm:text-6xl font-bold ${getScoreColor(score)}` }, `${Math.round(score)}%`), e('span', { className: "text-sm font-medium text-gray-500 dark:text-gray-400" }, "Success Chance"))); };
-        const WeatherCard = ({ day }) => { const conditionIcons = { 'Sunny': 'sun', 'Cloudy': 'cloudy', 'Rain': 'rain' }; const conditionColors = { 'Sunny': 'text-yellow-500', 'Cloudy': 'text-gray-500', 'Rain': 'text-blue-500' }; return e('div', { className: "flex-shrink-0 w-32 p-4 space-y-3 bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700" }, e('div', { className: "flex flex-col items-center space-y-1" }, e('p', { className: "font-bold text-gray-800 dark:text-gray-200" }, formatDate(day.date)), e(Icon, { name: conditionIcons[day.condition] || 'cloudy', className: `w-10 h-10 ${conditionColors[day.condition] || 'text-gray-500'}` }), e('p', { className: "text-sm text-gray-500 dark:text-gray-400" }, day.condition)), e('div', { className: "space-y-2 text-xs text-gray-700 dark:text-gray-300" }, e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "temp", className: "w-4 h-4 text-red-400" }), e('span', null, "Temp")), e('span', { className: "font-semibold" }, `${day.temp}°F`)), e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "rain", className: "w-4 h-4 text-blue-400" }), e('span', null, "Rain")), e('span', { className: "font-semibold" }, `${day.precipitationChance}%`)), e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "humidity", className: "w-4 h-4 text-cyan-400" }), e('span', null, "Humid")), e('span', { className: "font-semibold" }, `${day.humidity}%`)), e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "wind", className: "w-4 h-4 text-gray-400" }), e('span', null, "Wind")), e('span', { className: "font-semibold" }, `${day.windSpeed} mph`))));};
-        const AdviceDisplay = ({ advice, color }) => advice ? e('div', { className: `p-4 mt-4 text-center rounded-lg border-l-4 ${color.border} ${color.bg} ${color.text}`}, e('p', { className: "font-semibold" }, advice)) : null;
+        const WeatherCard = ({ day, isBalingDay }) => { const conditionIcons = { 'Sunny': 'sun', 'Cloudy': 'cloudy', 'Rain': 'rain' }; const conditionColors = { 'Sunny': 'text-yellow-500', 'Cloudy': 'text-gray-500', 'Rain': 'text-blue-500' }; return e('div', { className: `flex-shrink-0 w-32 p-4 space-y-3 bg-white border rounded-xl shadow-sm dark:bg-gray-800 ${isBalingDay ? 'border-blue-500 border-2' : 'border-gray-200 dark:border-gray-700'}` }, e('div', { className: "flex flex-col items-center space-y-1" }, e('p', { className: "font-bold text-gray-800 dark:text-gray-200" }, formatDate(day.date)), e(Icon, { name: conditionIcons[day.condition] || 'cloudy', className: `w-10 h-10 ${conditionColors[day.condition] || 'text-gray-500'}` }), e('p', { className: "text-sm text-gray-500 dark:text-gray-400" }, day.condition)), e('div', { className: "space-y-2 text-xs text-gray-700 dark:text-gray-300" }, e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "temp", className: "w-4 h-4 text-red-400" }), e('span', null, "Temp")), e('span', { className: "font-semibold" }, `${day.temp}°F`)), e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "rain", className: "w-4 h-4 text-blue-400" }), e('span', null, "Rain")), e('span', { className: "font-semibold" }, `${day.precipitationChance}%`)), e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "humidity", className: "w-4 h-4 text-cyan-400" }), e('span', null, "Humid")), e('span', { className: "font-semibold" }, `${day.humidity}%`)), e('div', { className: "flex items-center justify-between" }, e('div', { className: "flex items-center space-x-1" }, e(Icon, { name: "wind", className: "w-4 h-4 text-gray-400" }), e('span', null, "Wind")), e('span', { className: "font-semibold" }, `${day.windSpeed} mph`))));};
+        const AdviceDisplay = ({ advice, color }) => advice ? e('div', { className: `p-4 mt-2 text-center rounded-lg border-l-4 ${color.border} ${color.bg} ${color.text}`}, e('p', { className: "font-semibold" }, advice)) : null;
         const LocationModal = ({ onSearch, onClose }) => { const [query, setQuery] = useState(''); return e('div', { className: 'modal-overlay' }, e('div', { className: 'modal-content dark:bg-gray-800' }, e('h3', { className: 'text-xl font-semibold text-gray-800 dark:text-white mb-4' }, 'Change Location'), e('p', { className: 'text-sm text-gray-500 dark:text-gray-400 mb-4' }, 'Enter a city and state (e.g., "Omaha, NE").'), e('input', { type: 'text', value: query, onChange: (ev) => setQuery(ev.target.value), className: 'w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white', placeholder: 'Enter new location...' }), e('div', { className: 'mt-6 flex justify-end space-x-3' }, e('button', { onClick: onClose, className: 'px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500' }, 'Cancel'), e('button', { onClick: () => onSearch(query), className: 'px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700' }, 'Search')))); };
         const RadarView = ({ location }) => { if (!location) return null; const { lat, lon } = location; const radarSrc = `https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&zoom=7&type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&overlay=radar&product=ecmwf&menu=&message=true&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&detailLat=${lat}&detailLon=${lon}&metricWind=mph&metricTemp=%C2%B0F&metricRain=in`; return e('div', { className: "w-full h-[60vh] rounded-lg overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700 bg-gray-200" }, e('iframe', { className: "w-full h-full", src: radarSrc, frameBorder: "0" })); };
+        const DateBreakdown = ({ cutDate, balingDay }) => { if (!balingDay) return null; return e('div', { className: 'mt-4 p-3 bg-gray-100 dark:bg-gray-700/50 rounded-lg text-sm space-y-1' }, e('div', { className: 'flex justify-between' }, e('span', { className: 'font-semibold text-gray-700 dark:text-gray-300' }, 'Cut Date:'), e('span', { className: 'font-mono text-gray-900 dark:text-white' }, formatDate(cutDate))), e('div', { className: 'flex justify-between' }, e('span', { className: 'font-semibold text-gray-700 dark:text-gray-300' }, 'Baling Date:'), e('span', { className: 'font-mono text-blue-600 dark:text-blue-400' }, formatDate(balingDay.date))));};
 
         // --- Main App Component ---
         function App() {
           const today = new Date().toISOString().split('T')[0];
           
           const [cutDate, setCutDate] = useState(today);
-          const [dryingPeriod, setDryingPeriod] = useState(3); // New state for drying period
+          const [dryingPeriod, setDryingPeriod] = useState(2); // Default to 2 days
           const [fullForecast, setFullForecast] = useState([]);
           const [status, setStatus] = useState({ stage: 'idle', message: 'Click the button to get your local forecast.' });
           const [location, setLocation] = useState(null);
@@ -92,11 +93,20 @@
 
           const weatherDataForAnalysis = useMemo(() => { if (fullForecast.length === 0) return []; const startIndex = fullForecast.findIndex(day => day.date >= cutDate); return startIndex === -1 ? [] : fullForecast.slice(startIndex, startIndex + 5); }, [cutDate, fullForecast]);
           
-          // Updated analysis logic to use dryingPeriod state
           const analysis = useMemo(() => {
-            const dryingDays = weatherDataForAnalysis.slice(0, dryingPeriod);
-            if (dryingDays.length < dryingPeriod) return { score: 0, advice: "Not enough forecast data for a reliable prediction.", color: { text: 'text-gray-800', bg: 'bg-gray-100', border: 'border-gray-400' } };
+            const totalDaysNeeded = dryingPeriod + 1; // +1 for the baling day
+            const analysisDays = weatherDataForAnalysis.slice(0, totalDaysNeeded);
+
+            if (analysisDays.length < totalDaysNeeded) {
+              return { score: 0, advice: "Not enough forecast data for a reliable prediction.", color: { text: 'text-gray-800', bg: 'bg-gray-100', border: 'border-gray-400' }, dryingDays: [], balingDay: null };
+            }
+
+            const dryingDays = analysisDays.slice(0, dryingPeriod);
+            const balingDay = analysisDays[dryingPeriod];
+            
             let score = 100;
+
+            // Penalties for drying period
             dryingDays.forEach((day, index) => {
                 score -= (day.precipitationChance || 0) * (1.8 - index * 0.3);
                 if (day.humidity > 75) score -= (day.humidity - 75) * 0.5;
@@ -104,22 +114,29 @@
                 if (day.windSpeed < 5) score -= 3;
                 if (day.condition === 'Sunny' && day.precipitationChance < 15 && day.humidity < 60) score += 5;
             });
+
+            // Heavy penalty for rain on baling day
+            if (balingDay) {
+              score -= (balingDay.precipitationChance || 0) * 2.0;
+              if (balingDay.humidity > 80 && balingDay.precipitationChance > 20) {
+                  score -= 10; // Extra penalty for humid and rainy baling day
+              }
+            }
+
             score = Math.max(0, Math.min(100, score));
             let advice, color;
-            if (score > 80) { advice = "Excellent haying window! Conditions look ideal."; color = { text: 'text-green-800', bg: 'bg-green-100', border: 'border-green-500' }; }
-            else if (score > 60) { advice = "Good window. Conditions are favorable, but monitor the forecast."; color = { text: 'text-yellow-800', bg: 'bg-yellow-100', border: 'border-yellow-500' }; }
-            else if (score > 40) { advice = "Risky conditions. Rain or high humidity may impact drying."; color = { text: 'text-orange-800', bg: 'bg-orange-100', border: 'border-orange-500' }; }
-            else { advice = "Poor conditions. It's not recommended to cut hay now."; color = { text: 'text-red-800', bg: 'bg-red-100', border: 'border-red-500' }; }
-            return { score, advice, color };
+            if (score > 80) { advice = "Excellent haying window! Conditions look ideal for drying and baling."; color = { text: 'text-green-800', bg: 'bg-green-100', border: 'border-green-500' }; }
+            else if (score > 60) { advice = "Good window. Conditions are favorable, but monitor the forecast, especially for baling day."; color = { text: 'text-yellow-800', bg: 'bg-yellow-100', border: 'border-yellow-500' }; }
+            else if (score > 40) { advice = "Risky conditions. Rain or high humidity may impact drying or baling. Proceed with caution."; color = { text: 'text-orange-800', bg: 'bg-orange-100', border: 'border-orange-500' }; }
+            else { advice = "Poor conditions. It's not recommended to cut hay now due to high risk of rain."; color = { text: 'text-red-800', bg: 'bg-red-100', border: 'border-red-500' }; }
+            
+            return { score, advice, color, dryingDays, balingDay };
           }, [weatherDataForAnalysis, dryingPeriod]);
 
           const renderContent = () => {
               switch (status.stage) {
                   case 'idle':
-                      return e('div', { className: "flex flex-col items-center justify-center h-56" },
-                          e('p', { className: "text-center text-gray-600 dark:text-gray-400 mb-4" }, status.message),
-                          e('button', { onClick: handleInitialFetch, className: "px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors" }, "Get Local Forecast")
-                      );
+                      return e('div', { className: "flex flex-col items-center justify-center h-56" }, e('p', { className: "text-center text-gray-600 dark:text-gray-400 mb-4" }, status.message), e('button', { onClick: handleInitialFetch, className: "px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors" }, "Get Local Forecast"));
                   case 'locating':
                   case 'fetching':
                       return e(StatusDisplay, { message: status.message });
@@ -139,25 +156,18 @@
                           activeTab === 'forecast' && e('div', { className: 'grid grid-cols-1 md:grid-cols-2 gap-8 items-center' },
                               e('div', { className: "flex flex-col items-center space-y-6" },
                                   e('div', { className: "w-full max-w-xs space-y-4" },
-                                    e('div', null,
-                                      e('label', { htmlFor: "cut-date", className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center" }, "Select Planned Cut Date:"),
-                                      e('input', { type: "date", id: "cut-date", value: cutDate, min: today, onChange: (ev) => setCutDate(ev.target.value), className: "w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" })
-                                    ),
-                                    e('div', null,
-                                      e('label', { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center" }, "Select Drying Period:"),
-                                      e('div', { className: 'flex justify-center space-x-2' },
-                                        e('button', { onClick: () => setDryingPeriod(3), className: periodButtonClass(3) }, '3 Days'),
-                                        e('button', { onClick: () => setDryingPeriod(4), className: periodButtonClass(4) }, '4 Days'),
-                                        e('button', { onClick: () => setDryingPeriod(5), className: periodButtonClass(5) }, '5 Days')
-                                      )
-                                    )
+                                    e('div', null, e('label', { htmlFor: "cut-date", className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center" }, "Select Planned Cut Date:"), e('input', { type: "date", id: "cut-date", value: cutDate, min: today, onChange: (ev) => setCutDate(ev.target.value), className: "w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" })),
+                                    e('div', null, e('label', { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center" }, "Select Drying Period:"), e('div', { className: 'flex justify-center space-x-2' }, e('button', { onClick: () => setDryingPeriod(1), className: periodButtonClass(1) }, '1 Day'), e('button', { onClick: () => setDryingPeriod(2), className: periodButtonClass(2) }, '2 Days'), e('button', { onClick: () => setDryingPeriod(3), className: periodButtonClass(3) }, '3 Days')))
                                   ),
                                   e(SuccessGauge, { score: analysis.score })
                               ),
                               e('div', { className: "flex flex-col" },
-                                  e('h2', { className: "text-xl font-semibold text-center md:text-left mb-2 text-gray-800 dark:text-white" }, `Analysis for ${dryingPeriod}-Day Window`),
+                                  e('h2', { className: "text-xl font-semibold text-center md:text-left mb-2 text-gray-800 dark:text-white" }, `Analysis for ${dryingPeriod + 1}-Day Window`),
+                                  e(DateBreakdown, { cutDate, balingDay: analysis.balingDay }),
                                   e(AdviceDisplay, { advice: analysis.advice, color: analysis.color }),
-                                  e('div', { className: "mt-4" }, e('div', { className: "flex gap-4 overflow-x-auto pb-4 -mx-2 px-2" }, weatherDataForAnalysis.length > 0 ? weatherDataForAnalysis.map(day => e(WeatherCard, { key: day.date, day })) : e('p', { className: "text-center w-full text-gray-500" }, "No forecast available for the selected date.")))
+                                  e('div', { className: "mt-4" }, e('div', { className: "flex gap-4 overflow-x-auto pb-4 -mx-2 px-2" }, 
+                                      weatherDataForAnalysis.slice(0, dryingPeriod + 1).map((day, index) => e(WeatherCard, { key: day.date, day, isBalingDay: index === dryingPeriod }))
+                                  ))
                               )
                           ),
                           activeTab === 'radar' && e(RadarView, { location: location })
@@ -169,7 +179,7 @@
           return e('div', { className: "bg-gray-50 dark:bg-gray-900 min-h-screen p-4 sm:p-6 lg:p-8" },
             e('div', { className: "max-w-4xl mx-auto" },
                 e('header', { className: "text-center mb-4" },
-                    e('h1', { className: "text-3xl sm:text-4xl font-bold text-gray-800 dark:text-white" }, "Hay Production Advisor"),
+                    e('h1', { className: "text-3xl sm:text-4xl font-bold text-gray-800 dark:text-white" }, "The Haymaker"),
                     status.stage !== 'idle' && e('div', { className: 'mt-2' },
                       e('p', { className: "text-gray-600 dark:text-gray-400 flex items-center justify-center space-x-2" }, e(Icon, { name: "location", className: "w-5 h-5" }), e('span', null, `Forecast for ${locationName}`)),
                       e('button', { onClick: () => setIsModalOpen(true), className: 'mt-1 text-sm text-blue-600 hover:underline dark:text-blue-400 flex items-center justify-center mx-auto space-x-1' }, e(Icon, { name: 'edit', className: 'w-4 h-4' }), e('span', null, 'Change Location'))
